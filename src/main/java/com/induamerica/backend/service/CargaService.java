@@ -72,14 +72,13 @@ public class CargaService {
 
             Row headerRow = sheet.getRow(0);
             if (headerRow == null ||
-                    headerRow.getPhysicalNumberOfCells() < 3 ||
+                    headerRow.getPhysicalNumberOfCells() < 2 ||
                     !obtenerValorComoTexto(headerRow.getCell(0)).equalsIgnoreCase("Codigo Local") ||
-                    !obtenerValorComoTexto(headerRow.getCell(1)).equalsIgnoreCase("Codigo Bulto") ||
-                    !obtenerValorComoTexto(headerRow.getCell(2)).equalsIgnoreCase("Estado Recepcion")) {
+                    !obtenerValorComoTexto(headerRow.getCell(1)).equalsIgnoreCase("Codigo Bulto")) {
 
                 workbook.close();
                 return ResponseEntity.badRequest()
-                        .body("El archivo Excel no tiene el formato correcto. Se esperan las columnas: 'Codigo Local', 'Codigo Bulto' y 'Estado Recepcion'.");
+                        .body("El archivo Excel no tiene el formato correcto. Se esperan las columnas: 'Codigo Local' y 'Codigo Bulto'");
             }
 
             List<Bulto> bultosTemp = new ArrayList<>();
@@ -91,9 +90,8 @@ public class CargaService {
 
                 String codigoLocal = obtenerValorComoTexto(row.getCell(0)).toUpperCase();
                 String codigoBulto = obtenerValorComoTexto(row.getCell(1)).toUpperCase();
-                String estadoRecepcionStr = obtenerValorComoTexto(row.getCell(2)).toUpperCase().replace(" ", "_");
 
-                if (codigoLocal.isBlank() || codigoBulto.isBlank() || estadoRecepcionStr.isBlank()) {
+                if (codigoLocal.isBlank() || codigoBulto.isBlank()) {
                     workbook.close();
                     return ResponseEntity.badRequest()
                             .body("Fila " + filaActual + ": columnas vacías o mal formateadas.");
@@ -110,22 +108,12 @@ public class CargaService {
                             .body("Fila " + filaActual + ": código de local inexistente (" + codigoLocal + ").");
                 }
 
-                Bulto.EstadoRecepcion estadoRecepcion;
-                try {
-                    estadoRecepcion = Bulto.EstadoRecepcion.valueOf(estadoRecepcionStr);
-                } catch (IllegalArgumentException e) {
-                    workbook.close();
-                    return ResponseEntity.badRequest()
-                            .body("Fila " + filaActual + ": estado de recepción inválido: " + estadoRecepcionStr);
-                }
-
                 Bulto bulto = new Bulto();
                 bulto.setCodigoBulto(codigoBulto);
                 bulto.setLocal(localOpt.get());
                 bulto.setCarga(carga);
-                bulto.setEstadoRecepcion(estadoRecepcion);
-                bulto.setEstadoTransporte(
-                        estadoRecepcion == Bulto.EstadoRecepcion.FALTANTE ? null : Bulto.EstadoTransporte.EN_ALMACEN);
+                bulto.setEstadoRecepcion(null);
+                bulto.setEstadoTransporte(null);
                 bulto.setEstadoDespacho(null);
                 bulto.setFechaTransporte(null);
                 bulto.setFechaDespacho(null);
