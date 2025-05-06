@@ -8,4 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BultoRepository extends JpaRepository<Bulto, Integer> {
     List<Bulto> findByCargaIdCarga(int idCarga);
+
+    Bulto findByCodigoBulto(String codigoBulto);
+
+    List<Bulto> findByCargaCodigoCarga(String codigoCarga);
+
 }

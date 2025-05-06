@@ -1,16 +1,18 @@
 package com.induamerica.backend.dto;
 
-public class BultoProblemaDTO {
+public class BultoDTO {
     private String codigoBulto;
     private String estadoRecepcion;
     private String codigoLocal;
     private String nombreLocal;
+    private String codigoCarga;
 
-    public BultoProblemaDTO(String codigoBulto, String estadoRecepcion, String codigoLocal, String nombreLocal) {
+    public BultoDTO(String codigoBulto, String estadoRecepcion, String codigoLocal, String nombreLocal, String codigoCarga) {
         this.codigoBulto = codigoBulto;
         this.estadoRecepcion = estadoRecepcion;
         this.codigoLocal = codigoLocal;
         this.nombreLocal = nombreLocal;
+        this.codigoCarga = codigoCarga;
     }
 
     public String getCodigoBulto() {
@@ -43,5 +45,13 @@ public class BultoProblemaDTO {
 
     public void setNombreLocal(String nombreLocal){
         this.nombreLocal = nombreLocal;
+    }
+
+    public String getCodigoCarga(){
+        return codigoCarga;
+    }
+
+    public void setCodigoCarga(String codigoCarga){
+        this.codigoCarga = codigoCarga;
     }
 }

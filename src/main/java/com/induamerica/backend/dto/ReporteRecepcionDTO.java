@@ -7,10 +7,10 @@ public class ReporteRecepcionDTO {
     private double porcentajeBuenEstado;
     private double porcentajeDeteriorado;
     private double porcentajeFaltante;
-    private List<BultoProblemaDTO> bultosProblema;
+    private List<BultoDTO> bultosProblema;
 
     public ReporteRecepcionDTO(int total, double porcentajeBuenEstado, double porcentajeDeteriorado,
-                               double porcentajeFaltante, List<BultoProblemaDTO> bultosProblema) {
+                               double porcentajeFaltante, List<BultoDTO> bultosProblema) {
         this.total = total;
         this.porcentajeBuenEstado = porcentajeBuenEstado;
         this.porcentajeDeteriorado = porcentajeDeteriorado;
@@ -34,7 +34,7 @@ public class ReporteRecepcionDTO {
         return porcentajeFaltante;
     }
 
-    public List<BultoProblemaDTO> getBultosProblema() {
+    public List<BultoDTO> getBultosProblema() {
         return bultosProblema;
     }
 }

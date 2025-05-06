@@ -1,6 +1,6 @@
 package com.induamerica.backend.service;
 
-import com.induamerica.backend.dto.BultoProblemaDTO;
+import com.induamerica.backend.dto.BultoDTO;
 import com.induamerica.backend.dto.CargaRequest;
 import com.induamerica.backend.dto.LocalFrecuenciaDTO;
 import com.induamerica.backend.dto.ReporteFrecuenciaDTO;
@@ -154,13 +154,14 @@ public class CargaService {
                 .filter(b -> b.getEstadoRecepcion() == Bulto.EstadoRecepcion.FALTANTE)
                 .count();
 
-        List<BultoProblemaDTO> problemas = bultos.stream()
+        List<BultoDTO> problemas = bultos.stream()
                 .filter(b -> b.getEstadoRecepcion() != Bulto.EstadoRecepcion.EN_BUEN_ESTADO)
-                .map(b -> new BultoProblemaDTO(
+                .map(b -> new BultoDTO(
                         b.getCodigoBulto(),
                         b.getEstadoRecepcion().toString(),
                         b.getLocal().getCodigo(),
-                        b.getLocal().getNombre()))
+                        b.getLocal().getNombre(),
+                        b.getCarga().getCodigoCarga()))
                 .collect(Collectors.toList());
 
         return new ReporteRecepcionDTO(
@@ -210,7 +211,6 @@ public class CargaService {
                         localesFueraFrecuencia.add(dto);
                     }
                 }
-                
 
         int total = localesEnFrecuencia.size() + localesFueraFrecuencia.size();
         double porcentajeEn = total > 0 ? (localesEnFrecuencia.size() * 100.0 / total) : 0.0;
