@@ -99,7 +99,7 @@ public class CargaService {
 
                 Optional<Local> localOpt = localRepository.findAll()
                         .stream()
-                        .filter(l -> l.getCodigo().equalsIgnoreCase(codigoLocal))
+                        .filter(l -> l.getCodigo() != null && l.getCodigo().equalsIgnoreCase(codigoLocal))
                         .findFirst();
 
                 if (localOpt.isEmpty()) {
@@ -138,7 +138,7 @@ public class CargaService {
         }
     }
 
-    public ReporteRecepcionDTO generarReporteRecepcion(int idCarga) {
+    public ReporteRecepcionDTO generarReporteRecepcion(Long idCarga) {
         List<Bulto> bultos = bultoRepository.findByCargaIdCarga(idCarga);
         int total = bultos.size();
 
@@ -172,7 +172,7 @@ public class CargaService {
                 problemas);
     }
 
-    public ReporteFrecuenciaDTO generarReporteFrecuencia(int idCarga) {
+    public ReporteFrecuenciaDTO generarReporteFrecuencia(Long idCarga) {
         Optional<Carga> cargaOpt = cargaRepository.findById(idCarga);
         if (cargaOpt.isEmpty()) {
             throw new IllegalArgumentException("Carga no encontrada con ID: " + idCarga);
@@ -186,31 +186,31 @@ public class CargaService {
                 .map(Bulto::getLocal)
                 .collect(Collectors.toSet());
 
-                List<LocalFrecuenciaDTO> localesEnFrecuencia = new ArrayList<>();
-                List<LocalFrecuenciaDTO> localesFueraFrecuencia = new ArrayList<>();
-                
-                for (Local local : localesUnicos) {
-                    PatronAtencion patron = local.getPatronAtencion();
-                    DayOfWeek dia = fechaEvaluar.getDayOfWeek();
-                
-                    boolean enFrecuencia = switch (dia) {
-                        case MONDAY -> patron.isLunes();
-                        case TUESDAY -> patron.isMartes();
-                        case WEDNESDAY -> patron.isMiercoles();
-                        case THURSDAY -> patron.isJueves();
-                        case FRIDAY -> patron.isViernes();
-                        case SATURDAY -> patron.isSabado();
-                        case SUNDAY -> patron.isDomingo();
-                    };
-                
-                    LocalFrecuenciaDTO dto = new LocalFrecuenciaDTO(local.getNombre(), local.getCodigo());
-                
-                    if (enFrecuencia) {
-                        localesEnFrecuencia.add(dto);
-                    } else {
-                        localesFueraFrecuencia.add(dto);
-                    }
-                }
+        List<LocalFrecuenciaDTO> localesEnFrecuencia = new ArrayList<>();
+        List<LocalFrecuenciaDTO> localesFueraFrecuencia = new ArrayList<>();
+
+        for (Local local : localesUnicos) {
+            PatronAtencion patron = local.getPatronAtencion();
+            DayOfWeek dia = fechaEvaluar.getDayOfWeek();
+
+            boolean enFrecuencia = switch (dia) {
+                case MONDAY -> patron.isLunes();
+                case TUESDAY -> patron.isMartes();
+                case WEDNESDAY -> patron.isMiercoles();
+                case THURSDAY -> patron.isJueves();
+                case FRIDAY -> patron.isViernes();
+                case SATURDAY -> patron.isSabado();
+                case SUNDAY -> patron.isDomingo();
+            };
+
+            LocalFrecuenciaDTO dto = new LocalFrecuenciaDTO(local.getNombre(), local.getCodigo());
+
+            if (enFrecuencia) {
+                localesEnFrecuencia.add(dto);
+            } else {
+                localesFueraFrecuencia.add(dto);
+            }
+        }
 
         int total = localesEnFrecuencia.size() + localesFueraFrecuencia.size();
         double porcentajeEn = total > 0 ? (localesEnFrecuencia.size() * 100.0 / total) : 0.0;

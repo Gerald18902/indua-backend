@@ -48,12 +48,12 @@ public class CargaController {
     }
 
     @GetMapping("/reporte-recepcion/{idCarga}")
-    public ResponseEntity<ReporteRecepcionDTO> getReporteRecepcion(@PathVariable int idCarga) {
+    public ResponseEntity<ReporteRecepcionDTO> getReporteRecepcion(@PathVariable Long idCarga) {
         return ResponseEntity.ok(cargaService.generarReporteRecepcion(idCarga));
     }
 
     @GetMapping("/reporte-frecuencia/{idCarga}")
-    public ResponseEntity<ReporteFrecuenciaDTO> getReporteFrecuencia(@PathVariable int idCarga) {
+    public ResponseEntity<ReporteFrecuenciaDTO> getReporteFrecuencia(@PathVariable Long idCarga) {
         return ResponseEntity.ok(cargaService.generarReporteFrecuencia(idCarga));
     }
 

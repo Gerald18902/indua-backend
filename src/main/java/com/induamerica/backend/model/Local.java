@@ -12,7 +12,7 @@ public class Local {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idLocal;
+    private Long idLocal;
 
     private String codigo;
     private String nombre;

@@ -12,7 +12,7 @@ public class PatronAtencion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idPatronAtencion;
+    private Long idPatronAtencion;
 
     private String nombre;
 

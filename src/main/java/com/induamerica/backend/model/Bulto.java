@@ -16,7 +16,7 @@ public class Bulto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idBulto;
+    private Long idBulto;
 
     private String codigoBulto;
 

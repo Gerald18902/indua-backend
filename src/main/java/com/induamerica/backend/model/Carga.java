@@ -17,7 +17,7 @@ public class Carga {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idCarga;
+    private Long idCarga;
 
     private LocalDate fechaCarga;
 
