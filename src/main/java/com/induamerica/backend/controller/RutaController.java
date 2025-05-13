@@ -3,6 +3,7 @@ package com.induamerica.backend.controller;
 import com.induamerica.backend.dto.LocalDTO;
 import com.induamerica.backend.dto.RutaPersonalizadaDTO;
 import com.induamerica.backend.dto.RutaPersonalizadaRequest;
+import com.induamerica.backend.dto.ReporteTransporteDTO;
 import com.induamerica.backend.model.Carga;
 import com.induamerica.backend.model.UnidadTransporte;
 import com.induamerica.backend.service.RutaService;
@@ -58,4 +59,13 @@ public class RutaController {
         return rutaService.obtenerLocalesPorRuta(idRuta);
     }
 
+    @GetMapping("/reporte-transporte/{idCarga}")
+    public ReporteTransporteDTO generarReporteTransporte(@PathVariable Long idCarga) {
+        return rutaService.obtenerReporteTransporte(idCarga);
+    }
+
+    @GetMapping("/cargas-con-ruta")
+    public List<Carga> listarCargasConRuta() {
+        return rutaService.obtenerCargasConRuta();
+    }
 }

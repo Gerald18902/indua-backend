@@ -3,6 +3,7 @@ package com.induamerica.backend.service;
 import com.induamerica.backend.dto.LocalDTO;
 import com.induamerica.backend.dto.RutaPersonalizadaDTO;
 import com.induamerica.backend.dto.RutaPersonalizadaRequest;
+import com.induamerica.backend.dto.ReporteTransporteDTO;
 import com.induamerica.backend.model.Bulto;
 import com.induamerica.backend.model.Bulto.EstadoRecepcion;
 import com.induamerica.backend.model.Bulto.EstadoTransporte;
@@ -217,4 +218,43 @@ public class RutaService {
                 .collect(Collectors.toList());
     }
 
+    public ReporteTransporteDTO obtenerReporteTransporte(Long idCarga) {
+        Optional<Carga> cargaOpt = cargaRepo.findById(idCarga);
+        if (cargaOpt.isEmpty()) {
+            throw new RuntimeException("Carga no encontrada con ID: " + idCarga);
+        }
+
+        Carga carga = cargaOpt.get();
+
+        List<ReporteTransporteDTO.Ruta> rutas = rutaRepo.findAllByCarga_IdCarga(idCarga)
+                .stream()
+                .map(ruta -> {
+                    List<LocalDTO> locales = rutaLocalRepo
+                            .findByRutaPersonalizada_IdRutaPersonalizadaOrderByOrdenAsc(ruta.getIdRutaPersonalizada())
+                            .stream()
+                            .map(rpl -> new LocalDTO(
+                                    rpl.getLocal().getIdLocal(),
+                                    rpl.getLocal().getCodigo(),
+                                    rpl.getLocal().getNombre()))
+                            .toList();
+
+                    return new ReporteTransporteDTO.Ruta(
+                            ruta.getUnidad().getPlaca(),
+                            ruta.getComentario(),
+                            locales);
+                })
+                .toList();
+
+        return new ReporteTransporteDTO(
+                carga.getCodigoCarga(),
+                carga.getFechaCarga().toString(),
+                rutas);
+    }
+
+    public List<Carga> obtenerCargasConRuta() {
+        return rutaRepo.findAll().stream()
+                .map(RutaPersonalizada::getCarga)
+                .distinct()
+                .toList();
+    }
 }
