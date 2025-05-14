@@ -86,4 +86,22 @@ public class BultoController {
         }
     }
 
+    @PutMapping("/terminar-carga")
+    public ResponseEntity<String> terminarCarga(@RequestBody Map<String, String> request) {
+        try {
+            String codigoCarga = request.get("codigoCarga");
+            List<Bulto> bultos = bultoRepository.findByCargaCodigoCarga(codigoCarga);
+
+            for (Bulto b : bultos) {
+                if (b.getEstadoRecepcion() == null)
+                    b.setEstadoRecepcion(Bulto.EstadoRecepcion.FALTANTE);
+            }
+
+            bultoRepository.saveAll(bultos);
+            return ResponseEntity.ok("Carga terminada y bultos sin estado marcados como faltantes");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al terminar la carga");
+        }
+    }
 }
