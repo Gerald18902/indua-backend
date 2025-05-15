@@ -1,9 +1,11 @@
 package com.induamerica.backend.service;
 
 import com.induamerica.backend.dto.LocalDTO;
+import com.induamerica.backend.dto.LocalMapaDTO;
 import com.induamerica.backend.dto.RutaPersonalizadaDTO;
 import com.induamerica.backend.dto.RutaPersonalizadaRequest;
 import com.induamerica.backend.dto.ReporteTransporteDTO;
+import com.induamerica.backend.dto.RutaMapaDTO;
 import com.induamerica.backend.model.Bulto;
 import com.induamerica.backend.model.Bulto.EstadoRecepcion;
 import com.induamerica.backend.model.Bulto.EstadoTransporte;
@@ -256,5 +258,29 @@ public class RutaService {
                 .map(RutaPersonalizada::getCarga)
                 .distinct()
                 .toList();
+    }
+
+    public RutaMapaDTO obtenerMapaPorRuta(Long idRuta) {
+        RutaPersonalizada ruta = rutaRepo.findById(idRuta)
+                .orElseThrow(() -> new RuntimeException("Ruta no encontrada"));
+
+        List<LocalMapaDTO> locales = rutaLocalRepo
+                .findByRutaPersonalizada_IdRutaPersonalizadaOrderByOrdenAsc(idRuta)
+                .stream()
+                .map(rpl -> {
+                    Local l = rpl.getLocal();
+                    return new LocalMapaDTO(
+                            l.getIdLocal(),
+                            l.getCodigo(),
+                            l.getNombre(),
+                            l.getLatitud(),
+                            l.getLongitud());
+                })
+                .toList();
+
+        return new RutaMapaDTO(
+                ruta.getUnidad().getPlaca(),
+                ruta.getComentario(),
+                locales);
     }
 }

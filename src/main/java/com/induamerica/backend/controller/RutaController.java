@@ -4,6 +4,7 @@ import com.induamerica.backend.dto.LocalDTO;
 import com.induamerica.backend.dto.RutaPersonalizadaDTO;
 import com.induamerica.backend.dto.RutaPersonalizadaRequest;
 import com.induamerica.backend.dto.ReporteTransporteDTO;
+import com.induamerica.backend.dto.RutaMapaDTO;
 import com.induamerica.backend.model.Carga;
 import com.induamerica.backend.model.UnidadTransporte;
 import com.induamerica.backend.service.RutaService;
@@ -67,5 +68,10 @@ public class RutaController {
     @GetMapping("/cargas-con-ruta")
     public List<Carga> listarCargasConRuta() {
         return rutaService.obtenerCargasConRuta();
+    }
+
+    @GetMapping("/mapa-ruta/{idRuta}")
+    public RutaMapaDTO obtenerMapaDeRuta(@PathVariable Long idRuta) {
+        return rutaService.obtenerMapaPorRuta(idRuta);
     }
 }

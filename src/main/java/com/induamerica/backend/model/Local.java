@@ -21,6 +21,12 @@ public class Local {
     @Column(columnDefinition = "TEXT")
     private String direccion;
 
+    @Column
+    private Double latitud;
+
+    @Column
+    private Double longitud;
+
     @ManyToOne
     @JoinColumn(name = "id_patron_atencion", nullable = false)
     private PatronAtencion patronAtencion;
