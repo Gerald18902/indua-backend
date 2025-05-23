@@ -8,7 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.induamerica.backend.dto.ActualizarDespachoRequest;
 import com.induamerica.backend.dto.BultoDTO;
+import com.induamerica.backend.dto.BultoDespachoDTO;
 import com.induamerica.backend.model.Bulto;
 import com.induamerica.backend.repository.BultoRepository;
 
@@ -104,4 +106,27 @@ public class BultoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al terminar la carga");
         }
     }
+
+    @GetMapping("/en-camino")
+    public ResponseEntity<List<BultoDespachoDTO>> listarBultosEnCamino() {
+        List<BultoDespachoDTO> bultos = bultoRepository.findBultosEnCamino();
+        return ResponseEntity.ok(bultos);
+    }
+
+    @PutMapping("/actualizar-despacho-masivo")
+    public ResponseEntity<Void> actualizarDespachoMasivo(@RequestBody ActualizarDespachoRequest request) {
+        List<String> codigos = request.getCodigosBulto();
+        Bulto.EstadoDespacho nuevoEstado = Bulto.EstadoDespacho.valueOf(request.getNuevoEstado());
+
+        codigos.forEach(codigo -> {
+            Bulto bulto = bultoRepository.findByCodigoBulto(codigo);
+            if (bulto != null) {
+                bulto.setEstadoDespacho(nuevoEstado);
+                bultoRepository.save(bulto);
+            }
+        });
+
+        return ResponseEntity.ok().build();
+    }
+
 }
