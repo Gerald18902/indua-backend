@@ -22,8 +22,7 @@ public interface BultoRepository extends JpaRepository<Bulto, Long> {
                 SELECT new com.induamerica.backend.dto.BultoDespachoDTO(
                     b.codigoBulto, l.codigo, l.nombre,
                     c.codigoCarga, c.fechaCarga,
-                    b.estadoDespacho,
-                    (SELECT MAX(a.tipoMerma) FROM Acta a WHERE a.codigoBulto = b.codigoBulto)
+                    b.estadoDespacho
                 )
                 FROM Bulto b
                 JOIN b.local l

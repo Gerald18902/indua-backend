@@ -51,6 +51,9 @@ public class Bulto {
     }
 
     public enum EstadoDespacho {
-        ENTREGADO_EN_BUEN_ESTADO, FALTANTE, ENTREGADO_CON_IRREGULARIDAD
+        ENTREGADO_EN_BUEN_ESTADO,
+        DETERIORADO,
+        DISCREPANCIA,
+        FALTANTE
     }
 }

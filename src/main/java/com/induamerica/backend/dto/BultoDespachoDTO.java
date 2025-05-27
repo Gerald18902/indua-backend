@@ -3,7 +3,6 @@ package com.induamerica.backend.dto;
 import java.time.LocalDate;
 
 import com.induamerica.backend.model.Bulto;
-import com.induamerica.backend.model.TipoMerma;
 
 public class BultoDespachoDTO {
 
@@ -13,22 +12,19 @@ public class BultoDespachoDTO {
     private String codigoCarga;
     private LocalDate fechaCarga;
     private String estadoDespacho;
-    private String tipoMerma;
 
     public BultoDespachoDTO(String codigoBulto,
             String codigoLocal,
             String nombreLocal,
             String codigoCarga,
             LocalDate fechaCarga,
-            Bulto.EstadoDespacho estadoDespacho,
-            TipoMerma tipoMerma) {
+            Bulto.EstadoDespacho estadoDespacho) {
         this.codigoBulto = codigoBulto;
         this.codigoLocal = codigoLocal;
         this.nombreLocal = nombreLocal;
         this.codigoCarga = codigoCarga;
         this.fechaCarga = fechaCarga;
         this.estadoDespacho = (estadoDespacho != null) ? estadoDespacho.name() : null;
-        this.tipoMerma = (tipoMerma != null) ? tipoMerma.name() : null;
     }
 
     public String getCodigoBulto() {
@@ -77,13 +73,5 @@ public class BultoDespachoDTO {
 
     public void setEstadoDespacho(String estadoDespacho) {
         this.estadoDespacho = estadoDespacho;
-    }
-
-    public String getTipoMerma() {
-        return tipoMerma;
-    }
-
-    public void setTipoMerma(String tipoMerma) {
-        this.tipoMerma = tipoMerma;
     }
 }

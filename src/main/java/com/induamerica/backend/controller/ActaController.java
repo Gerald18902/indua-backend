@@ -4,7 +4,6 @@ package com.induamerica.backend.controller;
 import com.induamerica.backend.dto.RegistrarActaRequest;
 import com.induamerica.backend.model.Acta;
 import com.induamerica.backend.model.Bulto;
-import com.induamerica.backend.model.Bulto.EstadoDespacho;
 import com.induamerica.backend.repository.ActaRepository;
 import com.induamerica.backend.repository.BultoRepository;
 
@@ -39,8 +38,28 @@ public class ActaController {
         }
 
         // Actualizar estado del bulto
-        bulto.setEstadoDespacho(EstadoDespacho.ENTREGADO_CON_IRREGULARIDAD);
-        bultoRepository.save(bulto);
+        Bulto bulto1 = bultoRepository.findByCodigoBulto(request.getCodigoBulto());
+        if (bulto1 != null) {
+            switch (request.getTipoMerma()) {
+                case DETERIORADO -> {
+                    bulto1.setEstadoDespacho(Bulto.EstadoDespacho.DETERIORADO);
+                    bulto1.setFechaDespacho(request.getFechaIncidencia()); // ✅ asignar fecha
+                }
+                case DISCREPANCIA -> {
+                    bulto1.setEstadoDespacho(Bulto.EstadoDespacho.DISCREPANCIA);
+                    bulto1.setFechaDespacho(request.getFechaIncidencia()); // ✅ asignar fecha
+                }
+                case FALTANTE -> {
+                    bulto1.setEstadoDespacho(Bulto.EstadoDespacho.FALTANTE);
+                    bulto1.setFechaDespacho(null); // ✅ mantener nulo
+                }
+                default -> {
+                    bulto1.setEstadoDespacho(null);
+                    bulto1.setFechaDespacho(null);
+                }
+            }
+            bultoRepository.save(bulto1);
+        }
 
         // Procesar imagen
         String nombreImagen = null;

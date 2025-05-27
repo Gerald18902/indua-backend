@@ -1,5 +1,6 @@
 package com.induamerica.backend.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -118,13 +119,14 @@ public class BultoController {
         List<String> codigos = request.getCodigosBulto();
         Bulto.EstadoDespacho nuevoEstado = Bulto.EstadoDespacho.valueOf(request.getNuevoEstado());
 
-        codigos.forEach(codigo -> {
+        for (String codigo : codigos) {
             Bulto bulto = bultoRepository.findByCodigoBulto(codigo);
-            if (bulto != null) {
+            if (bulto != null && bulto.getEstadoDespacho() == null) {
                 bulto.setEstadoDespacho(nuevoEstado);
+                bulto.setFechaDespacho(LocalDate.now()); // ← asignar la fecha actual
                 bultoRepository.save(bulto);
             }
-        });
+        }
 
         return ResponseEntity.ok().build();
     }
