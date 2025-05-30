@@ -36,5 +36,9 @@ public class Acta {
     private String fotoRegistro;
 
     private String fotoRegularizacion;
-    
+
+    private String responsabilidad;
+
+    private LocalDate fechaRegularizacion;
+
 }

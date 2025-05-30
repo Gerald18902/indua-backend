@@ -21,7 +21,6 @@ public class RegistrarActaRequest {
     private String nombreAuxiliar;
     private String nombre;
     private TipoMerma tipoMerma;
-    private String estadoMerma;
     private Integer cantidad;
     private MultipartFile fotoRegistro;
 }
