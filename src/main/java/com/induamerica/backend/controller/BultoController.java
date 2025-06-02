@@ -17,7 +17,6 @@ import com.induamerica.backend.repository.BultoRepository;
 
 @RestController
 @RequestMapping("/api/bultos")
-@CrossOrigin(origins = "http://localhost:5173")
 public class BultoController {
 
     @Autowired

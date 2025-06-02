@@ -16,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/cargas")
-@CrossOrigin(origins = "http://localhost:5173")
 public class CargaController {
 
     @Autowired

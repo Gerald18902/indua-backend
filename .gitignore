@@ -30,3 +30,15 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Ignorar archivo .tar (muy pesado para GitHub)
+indua-backend.tar
+
+# Ignorar todo el contenido de la carpeta uploads
+uploads/*
+!uploads/.gitkeep  # Opcional: para mantener la carpeta vacía en Git si quieres que se cree en otros equipos
+
+# Ignorar archivos temporales de sistema
+*.log
+*.tmp
+

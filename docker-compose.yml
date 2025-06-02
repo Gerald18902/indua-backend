@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  backend:
+    image: indua-backend-backend:latest  # Usa la imagen ya cargada
+    container_name: indua-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://indua-dbd.cnuay2e06ao2.us-east-2.rds.amazonaws.com:5432/indua_dbd
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    ports:
+      - "8080:8080"
+    volumes:
+      - /home/ec2-user/uploads:/app/uploads
+    networks:
+      - indua-net
+
+networks:
+  indua-net:
