@@ -5,7 +5,7 @@ import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.induamerica.backend.model.TipoMerma;
+import com.induamerica.backend.model.Acta.TipoMerma;
 
 import java.time.LocalDate;
 

@@ -41,4 +41,11 @@ public class Acta {
 
     private LocalDate fechaRegularizacion;
 
+    // 👇 AÑADE ESTE ENUM DENTRO DE LA CLASE
+    public static enum TipoMerma {
+        DETERIORADO,
+        DISCREPANCIA,
+        FALTANTE
+    }
 }
+

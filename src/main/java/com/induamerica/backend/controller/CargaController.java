@@ -1,9 +1,9 @@
 package com.induamerica.backend.controller;
 
+import com.induamerica.backend.dto.CargaDTO;
 import com.induamerica.backend.dto.CargaRequest;
 import com.induamerica.backend.dto.ReporteFrecuenciaDTO;
 import com.induamerica.backend.dto.ReporteRecepcionDTO;
-import com.induamerica.backend.model.Carga;
 import com.induamerica.backend.repository.CargaRepository;
 import com.induamerica.backend.service.CargaService;
 
@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.induamerica.backend.dto.ReporteDespachoDTO;
 
 @RestController
 @RequestMapping("/api/cargas")
@@ -23,11 +24,6 @@ public class CargaController {
 
     @Autowired
     private CargaRepository cargaRepository;
-
-    @GetMapping
-    public List<Carga> listarCargas() {
-        return cargaRepository.findAll();
-    }
 
     @PostMapping(consumes = { "multipart/form-data" })
     public ResponseEntity<?> registrarCarga(
@@ -54,6 +50,19 @@ public class CargaController {
     @GetMapping("/reporte-frecuencia/{idCarga}")
     public ResponseEntity<ReporteFrecuenciaDTO> getReporteFrecuencia(@PathVariable Long idCarga) {
         return ResponseEntity.ok(cargaService.generarReporteFrecuencia(idCarga));
+    }
+
+    @GetMapping("/reporte-despacho/{codigoCarga}")
+    public ResponseEntity<ReporteDespachoDTO> getReporteDespacho(@PathVariable String codigoCarga) {
+        return ResponseEntity.ok(cargaService.generarReporteDespacho(codigoCarga));
+    }
+
+    @GetMapping
+    public List<CargaDTO> listarCargas() {
+        return cargaRepository.findAll()
+                .stream()
+                .map(c -> new CargaDTO(c.getIdCarga(), c.getCodigoCarga(), c.getFechaCarga())) // ✅ incluye idCarga
+                .toList();
     }
 
 }

@@ -3,9 +3,11 @@ package com.induamerica.backend.service;
 import com.induamerica.backend.dto.BultoDTO;
 import com.induamerica.backend.dto.CargaRequest;
 import com.induamerica.backend.dto.LocalFrecuenciaDTO;
+import com.induamerica.backend.dto.ReporteDespachoDTO;
 import com.induamerica.backend.dto.ReporteFrecuenciaDTO;
 import com.induamerica.backend.dto.ReporteRecepcionDTO;
 import com.induamerica.backend.model.*;
+import com.induamerica.backend.repository.ActaRepository;
 import com.induamerica.backend.repository.BultoRepository;
 import com.induamerica.backend.repository.CargaRepository;
 import com.induamerica.backend.repository.LocalRepository;
@@ -20,6 +22,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +40,9 @@ public class CargaService {
 
     @Autowired
     private LocalRepository localRepository;
+
+    @Autowired
+    private ActaRepository actaRepository;
 
     private String obtenerValorComoTexto(Cell cell) {
         if (cell == null)
@@ -221,6 +227,67 @@ public class CargaService {
                 Math.round(porcentajeFuera * 100.0) / 100.0,
                 localesEnFrecuencia,
                 localesFueraFrecuencia);
+    }
+
+    public ReporteDespachoDTO generarReporteDespacho(String codigoCarga) {
+        Carga carga = cargaRepository.findByCodigoCarga(codigoCarga)
+                .orElseThrow(() -> new IllegalArgumentException("Carga no encontrada"));
+
+        // 1. Obtener todos los bultos de esa carga
+        List<Bulto> bultos = bultoRepository.findByCargaCodigoCarga(codigoCarga);
+
+        // 2. Obtener los códigos de bultos
+        Set<String> codigosBulto = bultos.stream()
+                .map(Bulto::getCodigoBulto)
+                .collect(Collectors.toSet());
+
+        // 3. Filtrar las actas que coincidan con esos códigos
+        List<Acta> actas = actaRepository.findByCodigoBultoIn(new ArrayList<>(codigosBulto));
+
+        // 4. Clasificar
+        Map<String, Map<String, List<String>>> deteriorados = new LinkedHashMap<>();
+        Map<String, Map<String, List<String>>> discrepancias = new LinkedHashMap<>();
+        List<String> faltantes = new ArrayList<>();
+
+        for (Acta acta : actas) {
+            Bulto bulto = bultos.stream()
+                    .filter(b -> b.getCodigoBulto().equals(acta.getCodigoBulto()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (bulto == null)
+                continue;
+
+            String tipo = acta.getTipoMerma().name(); // Enum
+            String estado = acta.getEstadoMerma(); // Solo usado para deteriorado/discrepancia
+            String linea = acta.getNumeroActa() + " - " + bulto.getCodigoBulto() + " - "
+                    + bulto.getLocal().getNombre();
+
+            if ("DETERIORADO".equals(tipo) || "DISCREPANCIA".equals(tipo)) {
+                if (estado == null || estado.trim().isEmpty() || "REGULARIZADO".equalsIgnoreCase(estado))
+                    continue;
+
+                Map<String, List<String>> destino = tipo.equals("DETERIORADO")
+                        ? deteriorados.computeIfAbsent(estado, k -> new LinkedHashMap<>())
+                        : discrepancias.computeIfAbsent(estado, k -> new LinkedHashMap<>());
+
+                // Usamos una única clave para agrupar todo, ya que no queremos subgrupos por
+                // local
+                destino.computeIfAbsent("GENERAL", k -> new ArrayList<>()).add(linea);
+            } else if ("FALTANTE".equals(tipo)) {
+                faltantes.add(linea);
+            }
+        }
+
+        // 5. Armar el DTO
+        ReporteDespachoDTO dto = new ReporteDespachoDTO();
+        dto.setCodigoCarga(codigoCarga);
+        dto.setFechaCarga(carga.getFechaCarga().toString());
+        dto.setDeteriorados(deteriorados);
+        dto.setDiscrepancias(discrepancias);
+        dto.setFaltantes(faltantes);
+
+        return dto;
     }
 
 }

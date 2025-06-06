@@ -29,11 +29,14 @@ public class ActaService {
         }
 
         Acta acta = optionalActa.get();
+
+        // 🟡 Logging para verificar el estado recibido
+        System.out.println(">>> Estado recibido para actualizar: " + nuevoEstado);
+
         acta.setEstadoMerma(nuevoEstado);
         acta.setResponsabilidad(responsabilidad);
         acta.setFechaRegularizacion(LocalDate.now());
 
-        // Si hay foto, guardar en /uploads con nombre único
         if (foto != null && !foto.isEmpty()) {
             try {
                 String extension = foto.getOriginalFilename().contains(".")
@@ -51,6 +54,7 @@ public class ActaService {
 
                 acta.setFotoRegularizacion(nombreFoto);
 
+                // también actualiza la fecha de despacho del bulto
                 Bulto bulto = bultoRepository.findByCodigoBulto(acta.getCodigoBulto());
                 if (bulto != null) {
                     bulto.setFechaDespacho(LocalDate.now());
@@ -62,7 +66,9 @@ public class ActaService {
             }
         }
 
-        actaRepository.save(acta);
+        // ✅ Forzamos sincronización inmediata con la base de datos
+        actaRepository.saveAndFlush(acta);
+
         return "Acta actualizada correctamente.";
     }
 }
