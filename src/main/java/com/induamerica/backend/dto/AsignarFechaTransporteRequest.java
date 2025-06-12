@@ -1,15 +1,11 @@
 package com.induamerica.backend.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import java.time.LocalDate;
-
 public class AsignarFechaTransporteRequest {
 
     private String nombreLocal;
     private String codigoCarga;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate fechaTransporte;
+    private String fechaTransporte;
 
     // Getters y Setters
     public String getNombreLocal() {
@@ -28,11 +24,11 @@ public class AsignarFechaTransporteRequest {
         this.codigoCarga = codigoCarga;
     }
 
-    public LocalDate getFechaTransporte() {
+    public String getFechaTransporte() {
         return fechaTransporte;
     }
 
-    public void setFechaTransporte(LocalDate fechaTransporte) {
+    public void setFechaTransporte(String fechaTransporte) {
         this.fechaTransporte = fechaTransporte;
     }
 }

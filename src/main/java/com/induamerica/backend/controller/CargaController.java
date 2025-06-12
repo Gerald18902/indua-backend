@@ -1,9 +1,9 @@
 package com.induamerica.backend.controller;
 
-import com.induamerica.backend.dto.CargaDTO;
 import com.induamerica.backend.dto.CargaRequest;
 import com.induamerica.backend.dto.ReporteFrecuenciaDTO;
 import com.induamerica.backend.dto.ReporteRecepcionDTO;
+import com.induamerica.backend.model.Carga;
 import com.induamerica.backend.repository.CargaRepository;
 import com.induamerica.backend.service.CargaService;
 
@@ -58,11 +58,8 @@ public class CargaController {
     }
 
     @GetMapping
-    public List<CargaDTO> listarCargas() {
-        return cargaRepository.findAll()
-                .stream()
-                .map(c -> new CargaDTO(c.getIdCarga(), c.getCodigoCarga(), c.getFechaCarga())) // ✅ incluye idCarga
-                .toList();
+    public List<Carga> listarCargas() {
+        return cargaRepository.findAll();
     }
 
 }

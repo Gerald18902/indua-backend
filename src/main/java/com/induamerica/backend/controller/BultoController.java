@@ -124,7 +124,7 @@ public class BultoController {
             Bulto bulto = bultoRepository.findByCodigoBulto(codigo);
             if (bulto != null && bulto.getEstadoDespacho() == null) {
                 bulto.setEstadoDespacho(nuevoEstado);
-                bulto.setFechaDespacho(LocalDate.now().plusDays(1)); // ✅ corrige desfase
+                bulto.setFechaDespacho(LocalDate.now()); // ✅ corrige desfase
                 bultoRepository.save(bulto);
             }
         }
@@ -154,7 +154,7 @@ public class BultoController {
         try {
             String nombreLocal = request.getNombreLocal().trim();
             String codigoCarga = request.getCodigoCarga().trim();
-            LocalDate nuevaFecha = request.getFechaTransporte().plusDays(1); // ✅ solución aplicada
+            LocalDate nuevaFecha = LocalDate.parse(request.getFechaTransporte());
 
             // Filtrar los bultos por local y carga
             List<Bulto> bultosFiltrados = bultoRepository.findAll().stream()
