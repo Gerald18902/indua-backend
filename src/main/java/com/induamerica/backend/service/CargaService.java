@@ -170,11 +170,15 @@ public class CargaService {
                         b.getCarga().getCodigoCarga()))
                 .collect(Collectors.toList());
 
+        double porcBuenEstado = total > 0 ? enBuenEstado * 100.0 / total : 0.0;
+        double porcDeteriorado = total > 0 ? deteriorados * 100.0 / total : 0.0;
+        double porcFaltante = total > 0 ? faltantes * 100.0 / total : 0.0;
+
         return new ReporteRecepcionDTO(
                 total,
-                enBuenEstado * 100.0 / total,
-                deteriorados * 100.0 / total,
-                faltantes * 100.0 / total,
+                porcBuenEstado,
+                porcDeteriorado,
+                porcFaltante,
                 problemas);
     }
 

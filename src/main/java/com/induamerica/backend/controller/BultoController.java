@@ -15,6 +15,7 @@ import com.induamerica.backend.dto.BultoDespachoDTO;
 import com.induamerica.backend.dto.BultoTrazaDTO;
 import com.induamerica.backend.model.Bulto;
 import com.induamerica.backend.repository.BultoRepository;
+import com.induamerica.backend.service.BultoService;
 import com.induamerica.backend.dto.AsignarFechaTransporteRequest;
 
 @RestController
@@ -22,19 +23,15 @@ import com.induamerica.backend.dto.AsignarFechaTransporteRequest;
 public class BultoController {
 
     @Autowired
+    private BultoService bultoService;
+
+    // borrar luego
+    @Autowired
     private BultoRepository bultoRepository;
 
     @GetMapping
     public ResponseEntity<List<BultoDTO>> listarBultos() {
-        List<Bulto> bultos = bultoRepository.findAll();
-
-        List<BultoDTO> dtoList = bultos.stream().map(b -> new BultoDTO(
-                b.getCodigoBulto(),
-                b.getEstadoRecepcion() != null ? b.getEstadoRecepcion().toString() : "-",
-                b.getLocal().getCodigo(),
-                b.getLocal().getNombre(),
-                b.getCarga().getCodigoCarga())).toList();
-
+        List<BultoDTO> dtoList = bultoService.listarBultosDTO(); // ✅ delegar al servicio
         return ResponseEntity.ok(dtoList);
     }
 
@@ -44,27 +41,14 @@ public class BultoController {
             String codigoBulto = request.get("codigoBulto");
             String nuevoEstado = request.get("nuevoEstado");
 
-            Bulto bulto = bultoRepository.findByCodigoBulto(codigoBulto);
-            if (bulto == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bulto no encontrado");
-            }
-
-            Bulto.EstadoRecepcion estadoRecepcion = Bulto.EstadoRecepcion.valueOf(nuevoEstado);
-            bulto.setEstadoRecepcion(estadoRecepcion);
-
-            // Lógica para estadoTransporte
-            if (estadoRecepcion == Bulto.EstadoRecepcion.FALTANTE) {
-                bulto.setEstadoTransporte(null);
-            } else {
-                bulto.setEstadoTransporte(Bulto.EstadoTransporte.EN_ALMACEN);
-            }
-
-            bultoRepository.save(bulto);
+            bultoService.actualizarEstadoRecepcion(codigoBulto, nuevoEstado);
             return ResponseEntity.ok("Estado actualizado");
 
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar el estado");
+            return ResponseEntity.internalServerError().body("Error al actualizar el estado");
         }
     }
 
@@ -72,21 +56,11 @@ public class BultoController {
     public ResponseEntity<String> completarCarga(@RequestBody Map<String, String> request) {
         try {
             String codigoCarga = request.get("codigoCarga");
-
-            List<Bulto> bultos = bultoRepository.findByCargaCodigoCarga(codigoCarga);
-
-            for (Bulto b : bultos) {
-                if (b.getEstadoRecepcion() == null) {
-                    b.setEstadoRecepcion(Bulto.EstadoRecepcion.EN_BUEN_ESTADO);
-                    b.setEstadoTransporte(Bulto.EstadoTransporte.EN_ALMACEN);
-                }
-            }
-
-            bultoRepository.saveAll(bultos);
+            bultoService.completarCarga(codigoCarga);
             return ResponseEntity.ok("Bultos actualizados correctamente");
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al completar la carga");
+            return ResponseEntity.internalServerError().body("Error al completar la carga");
         }
     }
 
@@ -94,18 +68,11 @@ public class BultoController {
     public ResponseEntity<String> terminarCarga(@RequestBody Map<String, String> request) {
         try {
             String codigoCarga = request.get("codigoCarga");
-            List<Bulto> bultos = bultoRepository.findByCargaCodigoCarga(codigoCarga);
-
-            for (Bulto b : bultos) {
-                if (b.getEstadoRecepcion() == null)
-                    b.setEstadoRecepcion(Bulto.EstadoRecepcion.FALTANTE);
-            }
-
-            bultoRepository.saveAll(bultos);
+            bultoService.terminarCarga(codigoCarga);
             return ResponseEntity.ok("Carga terminada y bultos sin estado marcados como faltantes");
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al terminar la carga");
+            return ResponseEntity.internalServerError().body("Error al terminar la carga");
         }
     }
 

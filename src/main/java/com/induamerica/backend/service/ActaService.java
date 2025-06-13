@@ -5,8 +5,10 @@ import com.induamerica.backend.model.Bulto;
 import com.induamerica.backend.repository.ActaRepository;
 import com.induamerica.backend.repository.BultoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.induamerica.backend.dto.RegistrarActaRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,4 +73,73 @@ public class ActaService {
 
         return "Acta actualizada correctamente.";
     }
+
+    public ResponseEntity<?> registrarActa(RegistrarActaRequest request) throws IOException {
+        Bulto bulto = bultoRepository.findByCodigoBulto(request.getCodigoBulto());
+        if (bulto == null) {
+            return ResponseEntity.badRequest().body("El código de bulto no existe.");
+        }
+
+        if (actaRepository.existsByCodigoBulto(request.getCodigoBulto())) {
+            return ResponseEntity.badRequest().body("Ya existe un acta registrada para este código de bulto.");
+        }
+
+        // Actualizar estado de despacho
+        switch (request.getTipoMerma()) {
+            case DETERIORADO, DISCREPANCIA -> {
+                bulto.setEstadoDespacho(Bulto.EstadoDespacho.valueOf(request.getTipoMerma().name()));
+                bulto.setFechaDespacho(request.getFechaIncidencia());
+            }
+            case FALTANTE -> {
+                bulto.setEstadoDespacho(Bulto.EstadoDespacho.FALTANTE);
+                bulto.setFechaDespacho(null);
+            }
+            default -> {
+                bulto.setEstadoDespacho(null);
+                bulto.setFechaDespacho(null);
+            }
+        }
+        bultoRepository.save(bulto);
+
+        // Guardar imagen
+        String nombreImagen = null;
+        MultipartFile foto = request.getFotoRegistro();
+        if (foto != null && !foto.isEmpty()) {
+            String original = foto.getOriginalFilename();
+            String extension = (original != null && original.contains("."))
+                    ? original.substring(original.lastIndexOf("."))
+                    : ".jpg";
+
+            String rutaUploads = System.getProperty("user.dir") + File.separator + "uploads";
+            File carpeta = new File(rutaUploads);
+            if (!carpeta.exists())
+                carpeta.mkdirs();
+
+            nombreImagen = System.currentTimeMillis() + extension;
+            File destino = new File(carpeta, nombreImagen);
+            foto.transferTo(destino);
+        }
+
+        // Crear Acta
+        Acta acta = new Acta();
+        acta.setFechaIncidencia(request.getFechaIncidencia());
+        acta.setCodigoBulto(request.getCodigoBulto());
+        acta.setNumeroActa(request.getNumeroActa());
+        acta.setNombreAuxiliar(request.getNombreAuxiliar());
+        acta.setNombre(request.getNombre());
+        acta.setTipoMerma(request.getTipoMerma());
+        acta.setCantidad(request.getCantidad());
+        acta.setFotoRegistro(nombreImagen);
+
+        switch (request.getTipoMerma()) {
+            case DETERIORADO, DISCREPANCIA -> acta.setEstadoMerma("MERMA SIN SUSTENTO");
+            case FALTANTE -> acta.setEstadoMerma("FALTANTE");
+            default -> acta.setEstadoMerma("SIN ESTADO");
+        }
+
+        actaRepository.save(acta);
+
+        return ResponseEntity.ok("Acta registrada correctamente");
+    }
+
 }
