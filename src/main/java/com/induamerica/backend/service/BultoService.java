@@ -1,10 +1,12 @@
 package com.induamerica.backend.service;
 
 import com.induamerica.backend.dto.BultoDTO;
+import com.induamerica.backend.dto.BultoTrazaDTO;
 import com.induamerica.backend.model.Bulto;
 import com.induamerica.backend.repository.BultoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.time.LocalDate;
 
 import java.util.List;
 
@@ -76,4 +78,48 @@ public class BultoService {
 
         bultoRepository.saveAll(bultos);
     }
+
+    public void actualizarDespachoMasivo(List<String> codigosBulto, Bulto.EstadoDespacho nuevoEstado) {
+        for (String codigo : codigosBulto) {
+            Bulto bulto = bultoRepository.findByCodigoBulto(codigo);
+            if (bulto != null && bulto.getEstadoDespacho() == null) {
+                bulto.setEstadoDespacho(nuevoEstado);
+                bulto.setFechaDespacho(LocalDate.now());
+                bultoRepository.save(bulto);
+            }
+        }
+    }
+
+    public String asignarFechaTransporte(String nombreLocal, String codigoCarga, LocalDate nuevaFecha) {
+        List<Bulto> bultosFiltrados = bultoRepository.findAll().stream()
+                .filter(b -> b.getLocal().getNombre().trim().equalsIgnoreCase(nombreLocal.trim()))
+                .filter(b -> b.getCarga().getCodigoCarga().trim().equalsIgnoreCase(codigoCarga.trim()))
+                .filter(b -> b.getEstadoTransporte() == Bulto.EstadoTransporte.EN_ALMACEN)
+                .toList();
+
+        for (Bulto bulto : bultosFiltrados) {
+            bulto.setEstadoTransporte(Bulto.EstadoTransporte.EN_CAMINO);
+            bulto.setFechaTransporte(nuevaFecha);
+        }
+
+        // ✅ Solo guardar si hay bultos que actualizar
+        if (!bultosFiltrados.isEmpty()) {
+            bultoRepository.saveAll(bultosFiltrados);
+        }
+
+        return "Fecha de transporte asignada correctamente a " + bultosFiltrados.size() + " bultos.";
+    }
+
+    public List<BultoTrazaDTO> obtenerTrazabilidad() {
+        return bultoRepository.findAll().stream().map(b -> new BultoTrazaDTO(
+                b.getCodigoBulto(),
+                b.getEstadoRecepcion() != null ? b.getEstadoRecepcion().toString() : "-",
+                b.getEstadoTransporte() != null ? b.getEstadoTransporte().toString() : "-",
+                b.getFechaTransporte() != null ? b.getFechaTransporte().toString() : "-",
+                b.getEstadoDespacho() != null ? b.getEstadoDespacho().toString() : "-",
+                b.getFechaDespacho() != null ? b.getFechaDespacho().toString() : "-",
+                b.getLocal().getNombre(),
+                b.getCarga().getCodigoCarga())).toList();
+    }
+
 }

@@ -68,7 +68,7 @@ public class RutaServiceTest {
                 localRepo);
     }
 
-    // Funcionalidad 1 - Escenario 1
+    
     @Test
     public void listarRutasPersonalizadas_debeRetornarTodasLasRutas() {
         // Entrada simulada
@@ -111,7 +111,7 @@ public class RutaServiceTest {
         assertEquals("CARGA002", resultado.get(1).getCodigoCarga());
     }
 
-    // Funcionalidad 1 - Escenario 2
+ 
     @Test
     public void listarRutasPersonalizadas_debeIgnorarCargasSinRutas() {
         // Solo retornamos rutas asociadas

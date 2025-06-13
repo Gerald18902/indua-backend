@@ -84,68 +84,29 @@ public class BultoController {
 
     @PutMapping("/actualizar-despacho-masivo")
     public ResponseEntity<Void> actualizarDespachoMasivo(@RequestBody ActualizarDespachoRequest request) {
-        List<String> codigos = request.getCodigosBulto();
-        Bulto.EstadoDespacho nuevoEstado = Bulto.EstadoDespacho.valueOf(request.getNuevoEstado());
-
-        for (String codigo : codigos) {
-            Bulto bulto = bultoRepository.findByCodigoBulto(codigo);
-            if (bulto != null && bulto.getEstadoDespacho() == null) {
-                bulto.setEstadoDespacho(nuevoEstado);
-                bulto.setFechaDespacho(LocalDate.now()); // ✅ corrige desfase
-                bultoRepository.save(bulto);
-            }
-        }
-
+        bultoService.actualizarDespachoMasivo(
+                request.getCodigosBulto(),
+                Bulto.EstadoDespacho.valueOf(request.getNuevoEstado()));
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/trazabilidad")
     public ResponseEntity<List<BultoTrazaDTO>> obtenerTrazabilidad() {
-        List<Bulto> bultos = bultoRepository.findAll();
-
-        List<BultoTrazaDTO> dtos = bultos.stream().map(b -> new BultoTrazaDTO(
-                b.getCodigoBulto(),
-                b.getEstadoRecepcion() != null ? b.getEstadoRecepcion().toString() : "-",
-                b.getEstadoTransporte() != null ? b.getEstadoTransporte().toString() : "-",
-                b.getFechaTransporte() != null ? b.getFechaTransporte().toString() : "-",
-                b.getEstadoDespacho() != null ? b.getEstadoDespacho().toString() : "-",
-                b.getFechaDespacho() != null ? b.getFechaDespacho().toString() : "-",
-                b.getLocal().getNombre(),
-                b.getCarga().getCodigoCarga())).toList();
-
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(bultoService.obtenerTrazabilidad());
     }
 
     @PutMapping("/asignar-fecha-transporte")
     public ResponseEntity<String> asignarFechaTransporte(@RequestBody AsignarFechaTransporteRequest request) {
         try {
-            String nombreLocal = request.getNombreLocal().trim();
-            String codigoCarga = request.getCodigoCarga().trim();
-            LocalDate nuevaFecha = LocalDate.parse(request.getFechaTransporte());
-
-            // Filtrar los bultos por local y carga
-            List<Bulto> bultosFiltrados = bultoRepository.findAll().stream()
-                    .filter(b -> b.getLocal().getNombre().trim().equalsIgnoreCase(nombreLocal))
-                    .filter(b -> b.getCarga().getCodigoCarga().trim().equalsIgnoreCase(codigoCarga))
-                    .filter(b -> b.getEstadoTransporte() == Bulto.EstadoTransporte.EN_ALMACEN)
-                    .toList();
-
-            System.out.println("🔎 Bultos encontrados: " + bultosFiltrados.size());
-
-            for (Bulto bulto : bultosFiltrados) {
-                bulto.setEstadoTransporte(Bulto.EstadoTransporte.EN_CAMINO);
-                bulto.setFechaTransporte(nuevaFecha);
-                System.out.println("✅ Actualizado: " + bulto.getCodigoBulto());
-            }
-
-            bultoRepository.saveAll(bultosFiltrados);
-            return ResponseEntity
-                    .ok("Fecha de transporte asignada correctamente a " + bultosFiltrados.size() + " bultos.");
+            String mensaje = bultoService.asignarFechaTransporte(
+                    request.getNombreLocal(),
+                    request.getCodigoCarga(),
+                    LocalDate.parse(request.getFechaTransporte()));
+            return ResponseEntity.ok(mensaje);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al asignar la fecha de transporte.");
         }
     }
-
 }

@@ -13,6 +13,7 @@ import com.induamerica.backend.dto.RegistrarActaRequest;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -24,39 +25,26 @@ public class ActaService {
     @Autowired
     private BultoRepository bultoRepository;
 
-    public String actualizarActa(Long id, String nuevoEstado, String responsabilidad, MultipartFile foto) {
+    public ResponseEntity<?> actualizarActa(Long id, String nuevoEstado, String responsabilidad, MultipartFile foto) {
         Optional<Acta> optionalActa = actaRepository.findById(id);
         if (optionalActa.isEmpty()) {
-            return "Acta no encontrada.";
+            return ResponseEntity.badRequest().body("Acta no encontrada.");
         }
 
         Acta acta = optionalActa.get();
-
-        // 🟡 Logging para verificar el estado recibido
-        System.out.println(">>> Estado recibido para actualizar: " + nuevoEstado);
-
         acta.setEstadoMerma(nuevoEstado);
         acta.setResponsabilidad(responsabilidad);
         acta.setFechaRegularizacion(LocalDate.now());
 
         if (foto != null && !foto.isEmpty()) {
             try {
-                String extension = foto.getOriginalFilename().contains(".")
-                        ? foto.getOriginalFilename().substring(foto.getOriginalFilename().lastIndexOf("."))
-                        : ".jpg";
-
-                String rutaUploads = System.getProperty("user.dir") + File.separator + "uploads";
-                File carpeta = new File(rutaUploads);
-                if (!carpeta.exists())
-                    carpeta.mkdirs();
-
+                String extension = getExtensionOrDefault(foto.getOriginalFilename(), ".jpg");
                 String nombreFoto = "reg_" + System.currentTimeMillis() + extension;
-                File destino = new File(carpeta, nombreFoto);
-                foto.transferTo(destino);
 
+                guardarArchivoEnUploads(foto, nombreFoto);
                 acta.setFotoRegularizacion(nombreFoto);
 
-                // también actualiza la fecha de despacho del bulto
+                // Actualiza la fecha de despacho del bulto relacionado
                 Bulto bulto = bultoRepository.findByCodigoBulto(acta.getCodigoBulto());
                 if (bulto != null) {
                     bulto.setFechaDespacho(LocalDate.now());
@@ -64,14 +52,12 @@ public class ActaService {
                 }
 
             } catch (IOException e) {
-                return "Error al guardar la imagen.";
+                return ResponseEntity.badRequest().body("Error al guardar la imagen.");
             }
         }
 
-        // ✅ Forzamos sincronización inmediata con la base de datos
         actaRepository.saveAndFlush(acta);
-
-        return "Acta actualizada correctamente.";
+        return ResponseEntity.ok("Acta actualizada correctamente.");
     }
 
     public ResponseEntity<?> registrarActa(RegistrarActaRequest request) throws IOException {
@@ -140,6 +126,38 @@ public class ActaService {
         actaRepository.save(acta);
 
         return ResponseEntity.ok("Acta registrada correctamente");
+    }
+
+    private String getExtensionOrDefault(String nombreArchivo, String defecto) {
+        if (nombreArchivo != null && nombreArchivo.contains(".")) {
+            return nombreArchivo.substring(nombreArchivo.lastIndexOf("."));
+        }
+        return defecto;
+    }
+
+    private void guardarArchivoEnUploads(MultipartFile archivo, String nombreDestino) throws IOException {
+        String rutaUploads = System.getProperty("user.dir") + File.separator + "uploads";
+        File carpeta = new File(rutaUploads);
+        if (!carpeta.exists())
+            carpeta.mkdirs();
+
+        File destino = new File(carpeta, nombreDestino);
+        archivo.transferTo(destino);
+    }
+
+    public List<Acta> listarActasConFiltros(String codigoBulto, String tipoMerma, String estadoMerma,
+            String fechaIncidencia) {
+        return actaRepository.findAll().stream()
+                .filter(a -> codigoBulto == null || codigoBulto.isBlank()
+                        || a.getCodigoBulto().contains(codigoBulto))
+                .filter(a -> tipoMerma == null || tipoMerma.isBlank()
+                        || a.getTipoMerma().name().equalsIgnoreCase(tipoMerma))
+                .filter(a -> estadoMerma == null || estadoMerma.isBlank()
+                        || (a.getEstadoMerma() != null && a.getEstadoMerma().equalsIgnoreCase(estadoMerma)))
+                .filter(a -> fechaIncidencia == null || fechaIncidencia.isBlank()
+                        || (a.getFechaIncidencia() != null &&
+                                a.getFechaIncidencia().toString().equals(fechaIncidencia)))
+                .toList();
     }
 
 }
