@@ -5,9 +5,12 @@ import com.induamerica.backend.model.Bulto;
 import com.induamerica.backend.repository.ActaRepository;
 import com.induamerica.backend.repository.BultoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.induamerica.backend.dto.RegistrarActaRequest;
 
 import java.io.File;
@@ -63,11 +66,11 @@ public class ActaService {
     public ResponseEntity<?> registrarActa(RegistrarActaRequest request) throws IOException {
         Bulto bulto = bultoRepository.findByCodigoBulto(request.getCodigoBulto());
         if (bulto == null) {
-            return ResponseEntity.badRequest().body("El código de bulto no existe.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código de bulto no encontrado");
         }
 
         if (actaRepository.existsByCodigoBulto(request.getCodigoBulto())) {
-            return ResponseEntity.badRequest().body("Ya existe un acta registrada para este código de bulto.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ya existe un acta para este código de bulto");
         }
 
         // Actualizar estado de despacho
