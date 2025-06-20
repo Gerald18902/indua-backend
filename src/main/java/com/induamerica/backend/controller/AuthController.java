@@ -36,7 +36,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Usuario nuevoUsuario) {
-        if (usuarioRepository.findByUsername(nuevoUsuario.getUsername()).isPresent()) {
+        if (usuarioRepository.findByUsernameIgnoreCase(nuevoUsuario.getUsername()).isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("El usuario ya existe");
         }
 

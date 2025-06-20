@@ -32,6 +32,12 @@ public class UsuarioController {
             return ResponseEntity.notFound().build();
         }
 
+        // Verificar si el nuevo username ya existe en otro usuario
+        Optional<Usuario> existente = usuarioRepository.findByUsernameIgnoreCase(datosActualizados.getUsername());
+        if (existente.isPresent() && !existente.get().getId_usuario().equals(id)) {
+            return ResponseEntity.status(409).body("Ya existe otro trabajador con ese nombre de usuario.");
+        }
+
         Usuario usuario = optionalUsuario.get();
         usuario.setNombre(datosActualizados.getNombre());
         usuario.setApellido(datosActualizados.getApellido());

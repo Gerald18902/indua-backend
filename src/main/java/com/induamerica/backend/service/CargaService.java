@@ -69,6 +69,12 @@ public class CargaService {
             Workbook workbook = WorkbookFactory.create(inputStream);
             Sheet sheet = workbook.getSheetAt(0);
 
+            Map<String, Local> mapaLocales = localRepository.findAll().stream()
+                    .filter(l -> l.getCodigo() != null)
+                    .collect(Collectors.toMap(
+                            l -> l.getCodigo().toUpperCase(), // clave: código en mayúscula
+                            l -> l));
+
             // Preparar la carga (sin guardar aún)
             Carga carga = new Carga();
             carga.setFechaCarga(LocalDate.parse(request.getFechaCarga()));
@@ -103,12 +109,8 @@ public class CargaService {
                             .body("Fila " + filaActual + ": columnas vacías o mal formateadas.");
                 }
 
-                Optional<Local> localOpt = localRepository.findAll()
-                        .stream()
-                        .filter(l -> l.getCodigo() != null && l.getCodigo().equalsIgnoreCase(codigoLocal))
-                        .findFirst();
-
-                if (localOpt.isEmpty()) {
+                Local local = mapaLocales.get(codigoLocal);
+                if (local == null) {
                     workbook.close();
                     return ResponseEntity.badRequest()
                             .body("Fila " + filaActual + ": código de local inexistente (" + codigoLocal + ").");
@@ -116,7 +118,7 @@ public class CargaService {
 
                 Bulto bulto = new Bulto();
                 bulto.setCodigoBulto(codigoBulto);
-                bulto.setLocal(localOpt.get());
+                bulto.setLocal(local);
                 bulto.setCarga(carga);
                 bulto.setEstadoRecepcion(null);
                 bulto.setEstadoTransporte(null);
@@ -125,6 +127,13 @@ public class CargaService {
                 bulto.setFechaDespacho(null);
 
                 bultosTemp.add(bulto);
+            }
+
+            // Validar si no se agregó ningún bulto
+            if (bultosTemp.isEmpty()) {
+                workbook.close();
+                return ResponseEntity.badRequest()
+                        .body("El archivo Excel no contiene bultos para registrar. Verifique que haya filas con datos.");
             }
 
             carga = cargaRepository.save(carga);
